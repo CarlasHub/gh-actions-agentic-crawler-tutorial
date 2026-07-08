@@ -1,0 +1,9 @@
+{
+  "start_url": "https://example.com/",
+  "exclude_paths": [
+    "/admin",
+    "/private",
+    "/logout"
+  ],
+  "max_pages": 20
+}

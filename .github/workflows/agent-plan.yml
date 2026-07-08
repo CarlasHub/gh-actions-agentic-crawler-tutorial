@@ -1,0 +1,50 @@
+name: Agent Plan
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "Describe the agent task"
+        required: true
+        default: "Improve the crawler exclude path behaviour and update tests."
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create-plan:
+    name: Create agent-plan.md and open a PR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Create agent plan
+        run: python scripts/create_agent_plan.py --task "${{ inputs.task }}" --out agent-plan.md
+
+      - name: Validate agent plan
+        run: python scripts/validate_agent_plan.py agent-plan.md
+
+      - name: Create branch and pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TASK: ${{ inputs.task }}
+        run: |
+          set -e
+          BRANCH="agent/plan-${{ github.run_id }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add agent-plan.md
+          git commit -m "docs: create agent plan"
+          git push origin "$BRANCH"
+          gh pr create \
+            --title "Agent plan: ${TASK}" \
+            --body "This PR contains an agent-plan.md file. Review it before running Agent Execute."

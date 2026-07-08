@@ -1,0 +1,62 @@
+name: Agent Execute
+
+on:
+  workflow_dispatch:
+    inputs:
+      plan_path:
+        description: "Path to approved plan"
+        required: true
+        default: "agent-plan.md"
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+
+jobs:
+  execute:
+    name: Simulate approved agent execution
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install project and test tools
+        run: pip install -e .[dev]
+
+      - name: Read repo instructions
+        run: cat AGENTS.md
+
+      - name: Read approved plan
+        run: cat "${{ inputs.plan_path }}"
+
+      - name: Validate plan before execution
+        run: python scripts/validate_agent_plan.py "${{ inputs.plan_path }}"
+
+      - name: Simulate agent execution
+        run: python scripts/agent_execute_simulator.py --plan "${{ inputs.plan_path }}"
+
+      - name: Run tests after execution
+        run: pytest
+
+      - name: Create branch and pull request with execution report
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          BRANCH="agent/execute-${{ github.run_id }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add AGENT_EXECUTION_REPORT.md
+          git commit -m "docs: add agent execution report"
+          git push origin "$BRANCH"
+          gh pr create \
+            --title "Agent execution report" \
+            --body-file AGENT_EXECUTION_REPORT.md

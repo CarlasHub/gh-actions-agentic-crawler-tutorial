@@ -1,0 +1,25 @@
+{
+  "https://example.com/": [
+    "https://example.com/about",
+    "https://example.com/blog",
+    "https://example.com/admin",
+    "https://example.com/private/profile",
+    "https://other.example.net/off-site"
+  ],
+  "https://example.com/about": [
+    "https://example.com/contact",
+    "https://example.com/admin/settings"
+  ],
+  "https://example.com/blog": [
+    "https://example.com/blog/post-1",
+    "https://example.com/logout"
+  ],
+  "https://example.com/blog/post-1": [],
+  "https://example.com/contact": [],
+  "https://example.com/admin": [
+    "https://example.com/admin/settings"
+  ],
+  "https://example.com/admin/settings": [],
+  "https://example.com/private/profile": [],
+  "https://example.com/logout": []
+}
